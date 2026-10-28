@@ -22,8 +22,8 @@ JSON Server 목 API로 구현한다. 강의에서 기능을 단계적으로 추�
 | `npx vitest run <파일 또는 패턴>` | 단일 테스트 실행                                               |
 
 - 검사만 하려면 `npx eslint .`, `npx prettier --check .`를 쓴다.
-- 현재 테스트 파일은 **하나도 없다**. 테스트를 추가할 때는 대상 파일 옆에 `*.test.tsx`로 두고
-  `@testing-library/react` + `user-event`를 쓴다. API는 `fetch`를 mock한다. json-server에 의존하지 않는다.
+- 테스트는 대상 파일 옆 `*.test.tsx`에 두고 `vi.mock('../api/notes')`로 API 모듈을 mock한다(json-server 의존 금지).
+  NoteEditor는 목록 로드 후 선택해야 폼이 채워지므로 `NoteEditor.test.tsx`의 `renderEditor` 헬퍼를 따른다.
 
 ## 커밋 규칙
 
