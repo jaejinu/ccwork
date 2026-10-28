@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notes App 아키텍처</title>
+    <style>
+      :root {
+        --bg: #f4f4f5;
+        --card: #ffffff;
+        --fg: #18202e;
+        --muted: #6b6b6b;
+        --border: #e2e2e2;
+        --accent: #2563eb;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #111318;
+          --card: #1a1d24;
+          --fg: #e8e8ea;
+          --muted: #9a9aa2;
+          --border: #2c2f38;
+          --accent: #60a5fa;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          'Pretendard Variable',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        line-height: 1.6;
+      }
+      header,
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      header {
+        padding-top: 32px;
+        padding-bottom: 8px;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 1.75rem;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+      nav {
+        margin-top: 12px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.875rem;
+      }
+      section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin: 20px 0;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      }
+      section h2 {
+        margin: 0 0 4px;
+        font-size: 1.25rem;
+      }
+      section p.desc {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        margin: 0 0 12px;
+        padding: 0;
+        list-style: none;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .legend code {
+        color: var(--fg);
+        background: var(--bg);
+        padding: 1px 6px;
+        border-radius: 6px;
+      }
+      pre.mermaid {
+        margin: 0;
+        overflow-x: auto;
+        text-align: center;
+        background: transparent;
+      }
+      ul.notes {
+        margin: 0;
+        padding-left: 20px;
+      }
+      ul.notes li {
+        margin: 4px 0;
+      }
+      footer {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 8px 16px 40px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Notes App 아키텍처</h1>
+      <div class="meta">생성: 2026-10-28 09:47 · 분석 파일 9개 · 소스: <code>src/</code></div>
+      <nav id="toc"></nav>
+    </header>
+    <main>
+      <section id="deps">
+        <h2>① 컴포넌트 의존성</h2>
+        <p class="desc">
+          src/ 파일 간 import · 렌더 · 슬롯 주입 · context 사용 관계. App 이 import 한
+          NoteList/NoteEditor 는 Layout 의 슬롯으로 들어가 Layout 안에서 렌더된다.
+        </p>
+        <ul class="legend">
+          <li><code>──▶</code> import + 렌더</li>
+          <li><code>╌╌▶ 슬롯명</code> 슬롯 props 로 주입되어 렌더</li>
+          <li><code>━━▶ useNotes</code> context 훅 사용</li>
+          <li><code>┄┄</code> 타입 참조</li>
+        </ul>
+        <pre class="mermaid">
+flowchart TD
+  subgraph Entry["Entry"]
+    main["main.tsx"]
+    App["App.tsx&lt;br/&gt;selectedNoteId · isCreating"]
+  end
+  subgraph Components["components/"]
+    Layout["Layout.tsx&lt;br/&gt;header + sidebar/main 슬롯"]
+    NoteList["NoteList.tsx"]
+    NoteItem["NoteItem.tsx"]
+    NoteEditor["NoteEditor.tsx"]
+  end
+  subgraph ContextLayer["context/"]
+    Ctx["NotesContext.tsx&lt;br/&gt;NotesProvider · useNotes"]
+  end
+  subgraph ApiLayer["api/"]
+    Api["notes.ts&lt;br/&gt;fetch · create · update · deleteNote"]
+  end
+  subgraph TypesLayer["types/"]
+    NoteType["note.ts&lt;br/&gt;interface Note"]
+  end
+  Server[("json-server :3001&lt;br/&gt;db.json")]
+
+  main --> App
+  App -->|NotesProvider| Ctx
+  App --> Layout
+  App --> NoteList
+  App --> NoteEditor
+  Layout -.->|sidebar| NoteList
+  Layout -.->|main| NoteEditor
+  NoteList --> NoteItem
+  NoteList ==>|useNotes| Ctx
+  NoteEditor ==>|useNotes| Ctx
+  Ctx -->|import * as api| Api
+  Api -->|HTTP| Server
+  Api -.- NoteType
+  Ctx -.- NoteType
+  NoteItem -.- NoteType
+
+  classDef entry fill:#ede9fe,stroke:#7c3aed,color:#1e1b4b
+  classDef comp fill:#dbeafe,stroke:#2563eb,color:#172554
+  classDef ctx fill:#dcfce7,stroke:#16a34a,color:#052e16
+  classDef api fill:#ffedd5,stroke:#ea580c,color:#431407
+  classDef types fill:#f4f4f5,stroke:#a1a1aa,color:#52525b,stroke-dasharray:4 3
+  classDef ext fill:#fef9c3,stroke:#ca8a04,color:#422006
+  class main,App entry
+  class Layout,NoteList,NoteItem,NoteEditor comp
+  class Ctx ctx
+  class Api api
+  class NoteType types
+  class Server ext
+        </pre>
+      </section>
+
+      <section id="state">
+        <h2>② 상태 흐름</h2>
+        <p class="desc">
+          상태는 세 곳(Context · App · NoteEditor 로컬)에 있다. 실선은 데이터가 내려가는 방향(props,
+          context 읽기), 점선은 이벤트가 올라가는 방향(onXxx 콜백, context 변경 함수 호출)이다.
+        </p>
+        <ul class="legend">
+          <li><code>──▶</code> 데이터 하향</li>
+          <li><code>╌╌▶</code> 이벤트 상향 / 상태 변경</li>
+          <li><code>⬡</code> 파생값 (상태 아님)</li>
+        </ul>
+        <pre class="mermaid">
+flowchart LR
+  subgraph CtxState["NotesContext 상태 (서버 데이터)"]
+    notes["notes: Note[]"]
+    loadErr["loading · error"]
+    mut["addNote · editNote · removeNote"]
+  end
+  subgraph AppState["App 상태 (UI 선택)"]
+    selId["selectedNoteId: string | null"]
+    creating["isCreating: boolean"]
+    handlers["handleSelectNote&lt;br/&gt;handleNewNote · handleDone"]
+  end
+  subgraph EditorState["NoteEditor 로컬 상태 (폼)"]
+    form["title · content · saving"]
+  end
+  derived{{"selectedNote&lt;br/&gt;= notes.find(id)"}}
+
+  cLayout["Layout"]
+  cList["NoteList"]
+  cItem["NoteItem"]
+  cEditor["NoteEditor"]
+
+  notes -->|useNotes| cList
+  loadErr -->|useNotes| cList
+  cList -->|"note · isSelected"| cItem
+  selId -->|props| cList
+  selId -->|props| cEditor
+  creating -->|props| cEditor
+  notes --> derived
+  selId --> derived
+  derived -->|useEffect 동기화| form
+  form --> cEditor
+
+  cItem -.->|onSelect id| handlers
+  cLayout -.->|onNewNote| handlers
+  cEditor -.->|onDone| handlers
+  handlers -.->|setState| selId
+  handlers -.->|setState| creating
+  cEditor -.->|"addNote / editNote"| mut
+  cItem -.->|"onDelete → removeNote"| mut
+  mut -.->|"API 성공 후 setNotes"| notes
+
+  classDef st fill:#dcfce7,stroke:#16a34a,color:#052e16
+  classDef ui fill:#ede9fe,stroke:#7c3aed,color:#1e1b4b
+  classDef local fill:#ffedd5,stroke:#ea580c,color:#431407
+  classDef comp fill:#dbeafe,stroke:#2563eb,color:#172554
+  classDef der fill:#f4f4f5,stroke:#71717a,color:#27272a,stroke-dasharray:4 3
+  class notes,loadErr,mut st
+  class selId,creating,handlers ui
+  class form local
+  class cLayout,cList,cItem,cEditor comp
+  class derived der
+        </pre>
+      </section>
+
+      <section id="sequence">
+        <h2>③ 노트 저장 시퀀스</h2>
+        <p class="desc">
+          저장 버튼 클릭부터 목록 리렌더까지. 낙관적 업데이트 없이 API 응답을 받은 뒤에 로컬 상태를
+          갱신한다.
+        </p>
+        <pre class="mermaid">
+sequenceDiagram
+  actor U as 사용자
+  participant E as NoteEditor
+  participant C as NotesContext
+  participant A as api/notes.ts
+  participant S as json-server
+  participant L as NoteList
+
+  U->>E: 저장 클릭
+  E->>E: 제목 비었으면 alert 후 중단
+  E->>E: setSaving(true)
+  alt isCreating (새 노트)
+    E->>C: addNote(title, content)
+    C->>A: createNote(title, content)
+    A->>S: POST /notes (createdAt, updatedAt 클라이언트에서 생성)
+    S-->>A: 저장된 Note (랜덤 문자열 id)
+    A-->>C: Note
+    C->>C: setNotes 로 목록 끝에 추가
+  else 기존 노트 편집
+    E->>C: editNote(id, title + content)
+    C->>A: updateNote(id, updates)
+    A->>S: PATCH /notes/:id (updatedAt 갱신)
+    S-->>A: 수정된 Note
+    A-->>C: Note
+    C->>C: setNotes 로 해당 id 교체
+  end
+  C-->>L: notes 변경으로 리렌더
+  E->>E: onDone() 호출 후 setSaving(false)
+  Note over E,S: 실패 시 api 가 throw, NoteEditor 가 catch 해서 alert
+        </pre>
+      </section>
+      <section id="notes">
+        <h2>분석 메모</h2>
+        <ul class="notes">
+          <li>
+            <b>순환 의존성 없음.</b> 의존 방향이 Entry → Components → Context → API 한 방향이다.
+          </li>
+          <li>
+            <b>슬롯 주입:</b> NoteList·NoteEditor 는 App 이 import 하지만 Layout 의
+            <code>sidebar</code>/<code>main</code> 슬롯으로 들어가 Layout 내부에서 렌더된다. import
+            그래프만 보면 이 관계가 드러나지 않는다.
+          </li>
+          <li>
+            <b>context 직접 사용:</b> NoteList, NoteEditor 만 <code>useNotes()</code> 를 쓴다.
+            Layout, NoteItem 은 props 만 받는다.
+          </li>
+          <li>
+            <b>API 접근 경로 단일화:</b> <code>api/notes.ts</code> 는 NotesContext 에서만 import
+            된다.
+          </li>
+          <li>
+            <b>삭제 에러 미처리:</b> NoteItem → NoteList → <code>removeNote</code> 경로에 try/catch
+            가 없어서 삭제 실패가 처리되지 않는다.
+          </li>
+          <li>
+            <b>선택 상태 정리 누락:</b> 선택 중인 노트를 삭제해도 <code>selectedNoteId</code> 가
+            남는다. 새 노트를 저장하면 <code>isCreating=false</code>,
+            <code>selectedNoteId=null</code> 이 되어 편집기가 빈 화면으로 돌아간다(새 노트가
+            선택되지 않음).
+          </li>
+        </ul>
+      </section>
+    </main>
+    <footer>Mermaid 로 렌더링됨 · 다이어그램이 보이지 않으면 인터넷 연결(CDN)을 확인하세요.</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+      const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: dark ? 'dark' : 'default',
+        securityLevel: 'loose',
+        flowchart: { curve: 'basis', htmlLabels: true },
+      });
+      // 목차 생성
+      const toc = document.getElementById('toc');
+      document.querySelectorAll('main section[id]').forEach((s) => {
+        const a = document.createElement('a');
+        a.href = '#' + s.id;
+        a.textContent = s.querySelector('h2')?.textContent ?? s.id;
+        toc.appendChild(a);
+      });
+    </script>
+  </body>
+</html>

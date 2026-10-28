@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{TITLE}} 아키텍처</title>
+    <style>
+      :root {
+        --bg: #f4f4f5;
+        --card: #ffffff;
+        --fg: #18202e;
+        --muted: #6b6b6b;
+        --border: #e2e2e2;
+        --accent: #2563eb;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #111318;
+          --card: #1a1d24;
+          --fg: #e8e8ea;
+          --muted: #9a9aa2;
+          --border: #2c2f38;
+          --accent: #60a5fa;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family:
+          'Pretendard Variable',
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        line-height: 1.6;
+      }
+      header,
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      header {
+        padding-top: 32px;
+        padding-bottom: 8px;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 1.75rem;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+      nav {
+        margin-top: 12px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      nav a {
+        color: var(--accent);
+        text-decoration: none;
+        font-size: 0.875rem;
+      }
+      section {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        margin: 20px 0;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+      }
+      section h2 {
+        margin: 0 0 4px;
+        font-size: 1.25rem;
+      }
+      section p.desc {
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        margin: 0 0 12px;
+        padding: 0;
+        list-style: none;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      .legend code {
+        color: var(--fg);
+        background: var(--bg);
+        padding: 1px 6px;
+        border-radius: 6px;
+      }
+      pre.mermaid {
+        margin: 0;
+        overflow-x: auto;
+        text-align: center;
+        background: transparent;
+      }
+      ul.notes {
+        margin: 0;
+        padding-left: 20px;
+      }
+      ul.notes li {
+        margin: 4px 0;
+      }
+      footer {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 8px 16px 40px;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>{{TITLE}} 아키텍처</h1>
+      <div class="meta">
+        생성: {{GENERATED_AT}} · 분석 파일 {{FILE_COUNT}}개 · 소스: <code>src/</code>
+      </div>
+      <nav id="toc"></nav>
+    </header>
+    <main>
+      {{SECTIONS}}
+      <section id="notes">
+        <h2>분석 메모</h2>
+        <ul class="notes">
+          {{NOTES}}
+        </ul>
+      </section>
+    </main>
+    <footer>Mermaid 로 렌더링됨 · 다이어그램이 보이지 않으면 인터넷 연결(CDN)을 확인하세요.</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+      const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: dark ? 'dark' : 'default',
+        securityLevel: 'loose',
+        flowchart: { curve: 'basis', htmlLabels: true },
+      });
+      // 목차 생성
+      const toc = document.getElementById('toc');
+      document.querySelectorAll('main section[id]').forEach((s) => {
+        const a = document.createElement('a');
+        a.href = '#' + s.id;
+        a.textContent = s.querySelector('h2')?.textContent ?? s.id;
+        toc.appendChild(a);
+      });
+    </script>
+  </body>
+</html>
