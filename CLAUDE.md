@@ -22,9 +22,15 @@ JSON Server 목 API로 구현한다. 강의에서 기능을 단계적으로 추�
 | `npx vitest run <파일 또는 패턴>` | 단일 테스트 실행                                               |
 
 - 검사만 하려면 `npx eslint .`, `npx prettier --check .`를 쓴다.
-- git 훅(husky): pre-commit은 `lint-staged`(staged된 ts/tsx에 eslint --fix + prettier), commit-msg는 commitlint(`commitlint.config.mjs`, Conventional Commits + `init` 타입 허용), pre-push는 `tsc --noEmit`. 훅이 실패하면 `--no-verify`로 우회하지 말고 원인을 고친다.
 - 현재 테스트 파일은 **하나도 없다**. 테스트를 추가할 때는 대상 파일 옆에 `*.test.tsx`로 두고
   `@testing-library/react` + `user-event`를 쓴다. API는 `fetch`를 mock한다. json-server에 의존하지 않는다.
+
+## 커밋 규칙
+
+- 형식: `type: 한국어 요약` (Conventional Commits, scope는 선택 `fix(api): ...`). 제목 72자 이내, 콜론 뒤 공백 필수.
+- type: `feat` `fix` `docs` `style` `refactor` `test` `chore` `build` `ci` `perf` `revert` `init` 외에는 commitlint가 차단한다.
+- 본문 필수: 제목 아래 빈 줄 후 **최소 2줄**(트레일러 제외, `body-min-lines`). 변경점은 `- ` 목록으로 쓰고, 관련 없는 변경은 커밋을 나눈다.
+- 훅(husky): pre-commit `lint-staged`(ts/tsx: eslint --fix + prettier) → commit-msg `commitlint` → pre-push `tsc --noEmit`. 실패하면 `--no-verify`로 우회하지 말고 원인을 고친다. 규칙 원본은 `commitlint.config.mjs`, `package.json`의 `lint-staged`.
 
 ## 구조와 데이터 흐름
 
@@ -132,8 +138,6 @@ db.json       ← json-server 데이터 파일
   `exhaustive-deps`를 비활성화했다. 의존성에 `selectedNote`를 넣으면 저장 후 입력이 덮어써질 수 있다.
 - `NoteItem`의 삭제 버튼은 `e.stopPropagation()`으로 카드 선택 클릭과 분리돼 있다. 이 처리를 유지한다.
 - 삭제할 때 확인 절차가 없고, 삭제된 노트가 선택 중이어도 `selectedNoteId`가 초기화되지 않는다(현재 동작).
-- README의 clone URL(`frongt/ccwork`)은 실제 origin(`jaejinu/ccwork`)과 다르다.
-- 커밋 메시지는 `type: 한국어 설명` 형식을 따른다(예: `docs: README 추가`, `init: ...`).
 
 ## 일관성 없는 패턴 (요청 없이 리팩터링하지 말 것)
 
@@ -144,4 +148,3 @@ db.json       ← json-server 데이터 파일
 - 핸들러: `App`, `NoteEditor`는 `handleXxx`를 정의하지만, `NoteItem`은 JSX 안에 인라인 화살표 함수를 쓴다.
 - 스타일: 대부분 Tailwind 클래스인데 `Layout`만 `style={{ fontFamily: 'Boogaloo...' }}`(`--font-display` 토큰이 있음)와
   `calc(100vh - 65px)`(헤더 높이 하드코딩) 인라인 스타일을 쓴다. `--radius` 토큰은 정의만 되고 쓰이지 않는다.
-- 함수 시그니처: `addNote(title, content)`는 위치 인자, `editNote(id, updates: Partial<Note>)`는 객체 인자다.
