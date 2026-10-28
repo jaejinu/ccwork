@@ -1,10 +1,23 @@
-// 본문 줄 수 계산: 제목 다음 줄부터, 빈 줄·주석(#)·트레일러(Co-Authored-By: 등)는 제외
-const countBodyLines = (raw = '') =>
-  raw
+// 본문 줄 수 계산: 제목 다음 줄부터, 빈 줄·주석(#)은 제외.
+// 마지막 문단이 전부 알려진 git 트레일러(Co-Authored-By: 등)면 제외한다.
+// (`NoteEditor: ...` 처럼 콜론으로 시작하는 일반 본문 줄은 센다)
+const TRAILER =
+  /^(Co-authored-by|Signed-off-by|Reviewed-by|Acked-by|Tested-by|Reported-by|Refs?|Closes|Fixes|Resolves): /i;
+const countBodyLines = (raw = '') => {
+  const lines = raw
     .split('\n')
     .slice(1)
-    .map((line) => line.trim())
-    .filter((line) => line && !line.startsWith('#') && !/^[A-Za-z-]+: /.test(line)).length;
+    .filter((line) => !line.startsWith('#'))
+    .map((line) => line.trim());
+  const paragraphs = lines
+    .join('\n')
+    .split(/\n\s*\n/)
+    .map((p) => p.split('\n').filter(Boolean))
+    .filter((p) => p.length > 0);
+  const last = paragraphs.at(-1);
+  if (last?.every((line) => TRAILER.test(line))) paragraphs.pop();
+  return paragraphs.flat().length;
+};
 
 export default {
   extends: ['@commitlint/config-conventional'],
