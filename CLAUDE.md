@@ -11,17 +11,18 @@ JSON Server 목 API로 구현한다. 강의에서 기능을 단계적으로 추�
 
 ## 명령어
 
-| 명령 | 비고 |
-|------|------|
-| `npm run dev` | `concurrently`로 Vite(5173)와 json-server(3001)를 함께 실행 |
-| `npm run server` | json-server만 실행 |
-| `npm run build` | `tsc && vite build` — 타입 에러가 있으면 빌드 실패 |
-| `npm run lint` | **`eslint . --fix`** — 검사만 하지 않고 파일을 자동 수정함 |
-| `npm run format` | `prettier --write .` — 전체 파일을 다시 씀 |
+| 명령                              | 비고                                                           |
+| --------------------------------- | -------------------------------------------------------------- |
+| `npm run dev`                     | `concurrently`로 Vite(5173)와 json-server(3001)를 함께 실행    |
+| `npm run server`                  | json-server만 실행                                             |
+| `npm run build`                   | `tsc && vite build` — 타입 에러가 있으면 빌드 실패             |
+| `npm run lint`                    | **`eslint . --fix`** — 검사만 하지 않고 파일을 자동 수정함     |
+| `npm run format`                  | `prettier --write .` — 전체 파일을 다시 씀                     |
 | `npm test` / `npm run test:watch` | Vitest (jsdom, globals, `src/test-setup.ts`에서 jest-dom 로드) |
-| `npx vitest run <파일 또는 패턴>` | 단일 테스트 실행 |
+| `npx vitest run <파일 또는 패턴>` | 단일 테스트 실행                                               |
 
 - 검사만 하려면 `npx eslint .`, `npx prettier --check .`를 쓴다.
+- git 훅(husky): pre-commit은 `lint-staged`(staged된 ts/tsx에 eslint --fix + prettier), pre-push는 `tsc --noEmit`. 훅이 실패하면 `--no-verify`로 우회하지 말고 원인을 고친다.
 - 현재 테스트 파일은 **하나도 없다**. 테스트를 추가할 때는 대상 파일 옆에 `*.test.tsx`로 두고
   `@testing-library/react` + `user-event`를 쓴다. API는 `fetch`를 mock한다. json-server에 의존하지 않는다.
 
