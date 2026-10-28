@@ -22,7 +22,7 @@ JSON Server 목 API로 구현한다. 강의에서 기능을 단계적으로 추�
 | `npx vitest run <파일 또는 패턴>` | 단일 테스트 실행                                               |
 
 - 검사만 하려면 `npx eslint .`, `npx prettier --check .`를 쓴다.
-- git 훅(husky): pre-commit은 `lint-staged`(staged된 ts/tsx에 eslint --fix + prettier), pre-push는 `tsc --noEmit`. 훅이 실패하면 `--no-verify`로 우회하지 말고 원인을 고친다.
+- git 훅(husky): pre-commit은 `lint-staged`(staged된 ts/tsx에 eslint --fix + prettier), commit-msg는 commitlint(`commitlint.config.mjs`, Conventional Commits + `init` 타입 허용), pre-push는 `tsc --noEmit`. 훅이 실패하면 `--no-verify`로 우회하지 말고 원인을 고친다.
 - 현재 테스트 파일은 **하나도 없다**. 테스트를 추가할 때는 대상 파일 옆에 `*.test.tsx`로 두고
   `@testing-library/react` + `user-event`를 쓴다. API는 `fetch`를 mock한다. json-server에 의존하지 않는다.
 
